@@ -1,4 +1,8 @@
 
+from common_layers import convolution as conv
+from common_layers import CBL, CSPBlock
+from common_layers import fork_
+from tensorflow.keras.layers import MaxPool2D
 tiny_conv  =  [
     [3, 3, 3, 32],
     [3, 3, 32, 64],
@@ -132,7 +136,23 @@ _fork_wts = [
     [1, 512],
     ]
 
-def cross_stage_partial_darknet_53(input_data):
+def cross_stage_partial_darknet_53_tiny(X):
 
-    input_data = conv(input_data, conv[0])
+    X = conv(X, _tiny_conv[0], downsample = True)
+    X = conv(X, _tiny_conv[1], downsample = True)
     
+    X = CBL(X, _tiny_conv[2])
+    X = CSPBlock(X, _tiny_conv[3:6])
+    X = MaxPool2D(2,2, 'same')(X)
+
+    X = CBL(X, _tiny_conv[6])
+    X = CSPBlock(X, _tiny_conv[7:11])
+    X = MaxPool2D(2,2,'same')(X)
+
+    X = CBL(X, _tiny_conv[11])
+    fork, X = CSPBlock(X, _tiny_conv[12:15], return_fork = True)
+    X = MaxPool2D(2, 2, 'same')(X)
+
+    X = CBL(X, _tiny_conv[15])
+
+    return fork, X 

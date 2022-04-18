@@ -1,3 +1,4 @@
+from cv2 import _INPUT_ARRAY_STD_VECTOR_MAT
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D
 
@@ -10,6 +11,8 @@ class BatchNormalization(tf.keras.layers.BatchNormalization):
 
 def mish(layer):
     return layer * tf.math.tanh(tf.math.softplus(layer))
+
+#def residual_block(input_layer, input_channel, filter_1, filter_2, activate_type = 'leaky'):
 
 def convolution(input_layer, filter_shape, downsample = False, activate = True, 
                 batchnorm = True, activate_type = 'mish'):
@@ -39,4 +42,35 @@ def convolution(input_layer, filter_shape, downsample = False, activate = True,
         else:
             conv = mish(conv)
     return conv
-        
+
+def CBL(input_layer, filter_shape):
+    return convolution(input_layer, filter_shape, activate_type = 'leaky')
+
+def CSPBlock(base_layer,filter, return_fork = False):
+    """
+    Cross-Stage Partial Network Block of the tinyYolov4 architecture
+
+    There are some differences between this one and the full yolov4, namely the mish activation 
+    This means that instead of CBL it would be CBM  (convolution, batchnorm, mish)
+    as well as the CBM block being utilized in the part_1 fork before recombination.
+    Refer to the image in the readme file of this project.
+    Pao, if you are reading this you are a man dedicated to coding, that is for sure.
+
+    
+    """
+    part_1 = base_layer
+    
+    part_2 = tf.split(base_layer, num_or_size_splits=2, axis = -1)[1]
+    
+    part_2 = CBL(part_2, filter[0])
+
+    part_3 = CBL(part_2, filter[1])
+
+    part_2 = tf.concat([part_2, part_3], axis = -1)
+
+    part_2 = CBL(part_2, filter[3])
+    
+    if return_fork:
+        return part_2, tf.concat([part_1, part_2], axis = -1)
+    else:    
+        return tf.concat([part_1, part_2], axis = -1) 
