@@ -1,4 +1,3 @@
-from cv2 import _INPUT_ARRAY_STD_VECTOR_MAT
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D
 
@@ -9,10 +8,8 @@ class BatchNormalization(tf.keras.layers.BatchNormalization):
         training = tf.logical_and(training, self.trainable)
         return super().call(x, training)
 
-def mish(layer):
-    return layer * tf.math.tanh(tf.math.softplus(layer))
-
-#def residual_block(input_layer, input_channel, filter_1, filter_2, activate_type = 'leaky'):
+"""def mish(layer):
+    return layer * tf.math.tanh(tf.math.softplus(layer))"""
 
 def convolution(input_layer, filter_shape, downsample = False, activate = True, 
                 batchnorm = True, activate_type = 'mish'):
