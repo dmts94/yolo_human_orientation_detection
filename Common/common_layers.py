@@ -8,8 +8,8 @@ class BatchNormalization(tf.keras.layers.BatchNormalization):
         training = tf.logical_and(training, self.trainable)
         return super().call(x, training)
 
-"""def mish(layer):
-    return layer * tf.math.tanh(tf.math.softplus(layer))"""
+def mish(layer):
+    return layer * tf.math.tanh(tf.math.softplus(layer))
 
 def convolution(input_layer, filter_shape, downsample = False, activate = True, 
                 batchnorm = True, activate_type = 'mish'):
@@ -21,8 +21,6 @@ def convolution(input_layer, filter_shape, downsample = False, activate = True,
     else:
         _padding = 'same'
         _strides = 1  
-    
-
     
     conv = Conv2D(filters = filter_shape[-1], kernel_size = filter_shape[0],
                     strides = _strides, padding = _padding, use_bias = not batchnorm, kernel_regularizer = tf.keras.regularizers.l2(.0005),
@@ -51,7 +49,9 @@ def CSPBlock(base_layer,filter, return_fork = False):
     This means that instead of CBL it would be CBM  (convolution, batchnorm, mish)
     as well as the CBM block being utilized in the part_1 fork before recombination.
     Refer to the image in the readme file of this project.
+
     Pao, if you are reading this you are a man dedicated to coding, that is for sure.
+
 
     
     """
@@ -68,6 +68,7 @@ def CSPBlock(base_layer,filter, return_fork = False):
     part_2 = CBL(part_2, filter[3])
     
     if return_fork:
+        
         return part_2, tf.concat([part_1, part_2], axis = -1)
     else:    
         return tf.concat([part_1, part_2], axis = -1) 
